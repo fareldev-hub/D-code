@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7f8fc">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+    <title>D-code</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-brand">
+            <a class="header-logo-link" href="/" aria-label="Kembali ke beranda" title="Beranda">
+                <img src="/favicon.png" alt="" aria-hidden="true">
+            </a>
+            <a class="brand" href="/" aria-label="D-code, beranda">
+                <h1 id="app_name"></h1>
+            </a>
+        </div>
+        <button class="btn-share" aria-label="Bagikan">
+            <i class="fas fa-share-alt"></i>
+        </button>
+    </header>
+    <main id="content" class="content-app">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <h2 id="hero-title">Ide hebatmu<br>dimulai dari <span>satu baris kode.</span></h2>
+                <p class="hero-description">
+                    Selamat datang di D-code. Temukan langkah pertamamu di dunia coding,
+                    lalu ubah rasa penasaran jadi sesuatu yang bisa kamu banggakan untuk di bagikan.
+                </p>
+                <div class="hero-note">
+                    <span class="note-icon" aria-hidden="true"><i class="fas fa-lightbulb"></i></span>
+                    <p>Tak perlu tahu semuanya untuk memulai.<br><strong>Cukup mulai dari sini.</strong></p>
+                </div>
+                <div class="hero-note">
+                    <span class="note-icon" aria-hidden="true"><i class="fas fa-book-open"></i></span>
+                    <p>Tersedia banyak ebook gratis untuk membantumu belajar coding.<br><strong>Gratis dan mudah di
+                            akses.</strong></p>
+                </div>
+            </div>
+            <div class="hero-copy">
+                <h3 class="cta-title" id="cta-title">Tertarik untuk memulai?</h3>
+                <p class="hero-description">
+                    Bergabunglah dengan komunitas kami dan mulailah perjalanan codingmu hari ini.
+                </p>
+                <button id="btn-start" class="btn btn-start">Mulai Sekarang</button>
+                <button id="btn-learn" class="btn btn-start">Pelajari lebih Lanjut</button>
+            </div>
+        </section>
+        <section class="hero" aria-labelledby="learning-hero-title">
+            <div class="hero-copy">
+                <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> JALUR BELAJAR</p>
+                <h2 id="learning-hero-title">Belajar coding<br><span>mulai dari dasar.</span></h2>
+                <p class="hero-description">
+                    Kenali dasar-dasar web dan temukan bahasa pemrograman yang sesuai dengan minatmu.
+                    Pelajari setiap materi secara bertahap, sesuai ritmemu.
+                </p>
+            </div>
+            <div class="hero-copy">
+                <h3 class="cta-title">Template gratis, siap dikembangkan.</h3>
+                <p class="hero-description">
+                    Temukan beragam template dan proyek open-source yang bisa kamu gunakan, pelajari, dan kembangkan
+                    untuk idemu. Semuanya gratis; gunakan dan bagikan kembali sesuai lisensi masing-masing proyek.
+                </p>
+                <a class="btn btn-start" href="/templates">
+                    Jelajahi template <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+        </section>
+        <section class="community-section" aria-labelledby="community-title">
+            <div class="community-intro">
+                <h2 id="community-title">Belajar lebih baik,<br><span>bersama-sama.</span></h2>
+                <p class="community-description">
+                    ThePort dan Vyntera adalah komunitas yang berfokus pada pengembangan teknologi, coding, dan berbagi
+                    pengetahuan. Kami menyediakan sumber belajar dan proyek open-source untuk membantu pengembang dan
+                    pemula berkembang.
+                </p>
+            </div>
+            <div class="founder-list" aria-label="Pendiri komunitas">
+                <article class="founder-card">
+                    <span class="founder-avatar" aria-hidden="true"><img src="brands/theport.png" alt="ThePort"
+                            loading="lazy" decoding="async"></span>
+                    <div class="founder-details">
+                        <h3>FAREL ALFAREZA</h3>
+                        <p>Founder <strong>ThePort</strong></p>
+                    </div>
+                    <a class="founder-link" href="https://github.com/fareldev" target="_blank" rel="noopener noreferrer"
+                        aria-label="GitHub fareldev-hub">
+                        <i class="fab fa-github" aria-hidden="true"></i>
+                        <span>fareldev-hub</span>
+                        <i class="fas fa-arrow-up-right-from-square link-arrow" aria-hidden="true"></i>
+                    </a>
+                    <a class="founder-link" href="https://fareldev.biz.id" target="_blank" rel="noopener noreferrer"
+                        aria-label="site">
+                        <i class="fas fa-link" aria-hidden="true"></i>
+                        <span>Kunjungi Porto</span>
+                        <i class="fas fa-arrow-up-right-from-square link-arrow" aria-hidden="true"></i>
+                    </a>
+                </article>
+                <article class="founder-card">
+                    <span class="founder-avatar founder-avatar-alt" aria-hidden="true"><img src="brands/vyntera.png"
+                            alt="Vyntera" loading="lazy" decoding="async"></span>
+                    <div class="founder-details">
+                        <h3>EVAN PURNAMALILA KOSASIH</h3>
+                        <p>Founder <strong>Vyntera</strong></p>
+                    </div>
+                    <a class="founder-link" href="https://github.com/evancoders" target="_blank"
+                        rel="noopener noreferrer" aria-label="GitHub evancoders">
+                        <i class="fab fa-github" aria-hidden="true"></i>
+                        <span>evancoders</span>
+                        <i class="fas fa-arrow-up-right-from-square link-arrow" aria-hidden="true"></i>
+                    </a>
+                    <a class="founder-link" href="https://evancoders-porto.vercel.app" target="_blank" rel="noopener noreferrer"
+                        aria-label="site">
+                        <i class="fas fa-link" aria-hidden="true"></i>
+                        <span>Kunjungi Porto</span>
+                        <i class="fas fa-arrow-up-right-from-square link-arrow" aria-hidden="true"></i>
+                    </a>
+                </article>
+            </div>
+        </section>
+        <footer class="page-footer"><span>Powered by Theport x Vyntera</span><span class="footer-divider"></span><span
+                class="privacy"><a href="/privacy">Kebijakan Privasi</a></span></footer>
+    </main>
+    <script type="module" src="/assets/js/app.js"></script>
+</body>
+
+</html>

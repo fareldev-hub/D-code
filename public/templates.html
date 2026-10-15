@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7f8fc">
+    <meta name="description" content="Jelajahi proyek dan template pilihan dari komunitas D-code.">
+    <title>Template &amp; Proyek — D-code</title>
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/all.css">
+    <link rel="stylesheet" href="/assets/css/templates.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="templates-page">
+    <header>
+        <div class="header-brand">
+            <a class="header-home-link btn-share" href="/" aria-label="Kembali ke beranda" title="Beranda">
+                <i class="fas fa-house" aria-hidden="true"></i>
+            </a>
+            <a class="brand" href="/" aria-label="D-code, beranda">
+                <h1 id="app_name"></h1>
+            </a>
+        </div>
+        <nav class="templates-nav" aria-label="Navigasi utama">
+            <a href="/learn">Jalur belajar</a>
+            <button class="btn-share" type="button" aria-label="Bagikan halaman template">
+                <i class="fas fa-share-alt" aria-hidden="true"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="templates-main">
+        <section class="templates-hero" aria-labelledby="templates-title">
+            <h2 id="templates-title">Temukan template<br><span>untuk ide berikutnya.</span></h2>
+            <p class="templates-lead">
+                Jelajahi proyek pilihan dari komunitas. Buka salah satu item untuk melihat semua file kode,
+                detail repository, dan pratinjau proyek.
+            </p>
+        </section>
+
+        <section class="project-catalog" aria-labelledby="project-list-title">
+            <div class="project-catalog-heading">
+                <div>
+                    <p class="templates-eyebrow">PILIHAN KOMUNITAS</p>
+                    <h2 id="project-list-title">Daftar template</h2>
+                </div>
+                <span class="project-count" id="project-count" aria-label="Jumlah proyek">0</span>
+            </div>
+            <label class="project-search" for="project-search">
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="project-search" type="search" aria-label="Cari template berdasarkan nama, pembuat, deskripsi, atau bahasa"
+                    placeholder="Cari nama proyek atau pembuat..."
+                    autocomplete="off">
+                <kbd>/</kbd>
+            </label>
+            <p class="project-list-status" id="project-list-status" role="status">Memuat daftar proyek...</p>
+            <div class="project-list" id="project-list" aria-label="Proyek tersedia"></div>
+            <p class="project-empty-state" id="project-empty-state" role="status" hidden>Tidak ada template yang cocok dengan pencarianmu.</p>
+        </section>
+    </main>
+
+    <footer class="templates-footer">
+        <a href="/">D-code</a>
+        <a href="/privacy">Kebijakan Privasi</a>
+    </footer>
+    <script type="module" src="/assets/js/app.js"></script>
+    <script type="module" src="/assets/js/templates.js"></script>
+</body>
+
+</html>

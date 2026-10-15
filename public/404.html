@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7f8fc">
+    <title>404 — Halaman Tidak Ditemukan | D-code</title>
+    <style>
+        .not-found {
+            width: min(calc(100% - 40px), 720px);
+            min-height: 100svh;
+            display: grid;
+            align-content: center;
+            justify-items: start;
+            margin-inline: auto;
+            padding-block: 48px;
+        }
+
+        .not-found-code {
+            margin: 0;
+            color: #6856e8;
+            font-size: clamp(72px, 18vw, 140px);
+            font-weight: 800;
+            letter-spacing: -0.08em;
+            line-height: 1;
+        }
+
+        .not-found h1 {
+            margin: 20px 0 0;
+            color: #20243a;
+            font-size: clamp(26px, 5vw, 40px);
+            letter-spacing: -1px;
+        }
+
+        .not-found p {
+            max-width: 48ch;
+            margin: 12px 0 24px;
+            color: #71768b;
+            line-height: 1.8;
+        }
+
+        .not-found a {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid #27253c;
+            background: #6856e8;
+            box-shadow: 3px 3px 0 #27253c;
+            color: #fff;
+            font-weight: 650;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="not-found">
+        <p class="not-found-code" aria-hidden="true">404</p>
+        <h1>Halaman tidak ditemukan</h1>
+        <p>Halaman yang kamu cari tidak tersedia atau tidak dapat diakses.</p>
+        <a href="/">Kembali ke beranda</a>
+    </main>
+</body>
+
+</html>

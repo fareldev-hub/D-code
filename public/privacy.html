@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7f8fc">
+    <meta name="description" content="Informasi data akun yang digunakan aplikasi D-code dan cara autentikasi ditangani oleh Clerk.">
+    <title>Kebijakan Privasi — D-code</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/privacy.css">
+    <link rel="stylesheet" href="/assets/css/all.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="privacy-page">
+    <header>
+        <div class="header-brand">
+            <a class="brand" href="/" aria-label="D-code, beranda">
+                <h1>D-<span  id="app_name"></span></h1>
+            </a>
+        </div>
+        <nav class="privacy-nav" aria-label="Navigasi utama">
+            <button class="btn-share" type="button" aria-label="Bagikan halaman kebijakan privasi">
+                <i class="fas fa-share-alt" aria-hidden="true"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="privacy-main">
+        <section class="privacy-heading" aria-labelledby="privacy-title">
+            <p class="privacy-eyebrow"><span aria-hidden="true"></span> PERLINDUNGAN DATA PENGGUNA</p>
+            <h2 id="privacy-title">Kebijakan Privasi</h2>
+            <p class="privacy-updated">Terakhir diperbarui: 15 Oktober 2026</p>
+            <p class="privacy-intro">
+                Kebijakan ini menjelaskan data yang digunakan saat kamu membuat atau masuk ke akun di aplikasi D-code.
+                Pembuatan akun hanya tersedia di aplikasi, bukan di website ini.
+            </p>
+        </section>
+
+        <article class="privacy-content">
+            <section id="data-protection">
+                <h3>Data akun yang digunakan</h3>
+                <p>
+                    Saat kamu membuat akun di aplikasi D-code, data yang diminta adalah nama dan alamat email. Untuk
+                    autentikasi, kamu dapat menggunakan kata sandi atau masuk menggunakan akun Google.
+                </p>
+                <p>
+                    Layanan Clerk digunakan untuk mengelola pembuatan akun dan proses autentikasi. Jika kamu memilih
+                    Google, proses masuk menggunakan akun Google ditangani melalui integrasi autentikasi Clerk.
+                </p>
+                <p>
+                    Kata sandi digunakan untuk autentikasi melalui Clerk dan tidak disimpan oleh D-code sebagai teks
+                    yang dapat dibaca. Clerk memproses data akun sesuai layanan dan kebijakan privasinya. Baca
+                    <a href="https://clerk.com/legal/privacy" target="_blank" rel="noopener noreferrer">Kebijakan Privasi Clerk</a>
+                    untuk detail tentang penanganan data oleh layanan tersebut.
+                </p>
+                <p>
+                    Data nama dan email digunakan untuk mengenali akunmu dan menyediakan fitur aplikasi yang memerlukan
+                    akun. Jangan gunakan kata sandi yang sama dengan akun penting lainnya, dan jaga kerahasiaan akses
+                    akunmu.
+                </p>
+                <p>
+                    Kebijakan ini berfokus pada akun di aplikasi D-code. Website ini tidak menyediakan pembuatan akun.
+                    Jika jenis data atau cara penggunaannya berubah, informasi pada halaman ini akan diperbarui.
+                </p>
+            </section>
+        </article>
+
+        <button class="privacy-back-link" onclick="window.location.href='/'">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Kembali ke Dashboard
+        </button>
+        <style>
+            .privacy-back-link {
+                display: inline-block;
+                margin-top: 2rem;
+                text-decoration: none;
+                font-weight: bold;
+                padding: 10px;
+                border: 1px solid black;
+                box-shadow: 2px 2px 0px black;
+                cursor: pointer;
+            }
+
+            .privacy-back-link i {
+                margin-right: 0.5rem;
+            }
+
+            .privacy-back-link:hover {
+                transform: scale(1.02);
+            }
+
+            .privacy-back-link:active {
+                transform: scale(0.95);
+            }
+        </style>
+    </main>
+
+    <footer class="privacy-footer">
+        <a class="brand privacy-footer-brand" href="/" aria-label="Kembali ke D-code">
+            <span class="brand-mark" aria-hidden="true">&lt;/&gt;</span>
+            <span>D-code</span>
+        </a>
+        <span>Belajar dengan nyaman, mulai dari sini.</span>
+    </footer>
+
+    <script type="module" src="/assets/js/app.js"></script>
+</body>
+
+</html>

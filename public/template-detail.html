@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f7f8fc">
+    <meta name="description" content="Lihat file kode sumber dan pratinjau proyek pilihan di D-code.">
+    <title>Detail Proyek — D-code</title>
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/all.css">
+    <link rel="stylesheet" href="/assets/css/templates.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="templates-page template-detail-page">
+    <header>
+        <div class="header-brand">
+            <a class="header-home-link btn-share" onclick="window.location.href='/templates'" aria-label="Kembali ke daftar template"
+                title="Daftar template">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            </a>
+            <a class="brand" href="/" aria-label="D-code, beranda">
+                <h1 id="app_name"></h1>
+            </a>
+        </div>
+        <nav class="templates-nav" aria-label="Navigasi utama">
+            <a href="/templates">Template</a>
+            <button class="btn-share" type="button" aria-label="Bagikan proyek">
+                <i class="fas fa-share-alt" aria-hidden="true"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="templates-main template-detail-main">
+            <div class="project-live-workspace">
+            <section class="vscode-editor" aria-label="Editor kode proyek">
+                <div class="editor-titlebar">
+                    <div class="editor-window-controls" aria-hidden="true"><i></i><i></i><i></i></div>
+                    <span class="editor-project-title" id="editor-project-title">D-code — Editor Proyek</span>
+                    <div class="editor-title-actions">
+                        <button class="editor-files-button" id="toggle-explorer" type="button"
+                            aria-controls="file-explorer" aria-expanded="true">
+                            <i class="fas fa-folder-tree" aria-hidden="true"></i> Files
+                        </button>
+                        <a class="editor-download-button" id="download-repository-link" href="#" hidden>
+                            <i class="fas fa-download" aria-hidden="true"></i> Unduh kode
+                        </a>
+                        <button class="editor-run-button" id="run-preview" type="button" disabled>
+                            <i class="fas fa-rotate" aria-hidden="true"></i> Restart
+                        </button>
+                    </div>
+                </div>
+                <div class="editor-workspace">
+                    <button class="explorer-backdrop" id="explorer-backdrop" type="button"
+                        aria-label="Tutup panel file"></button>
+                    <aside class="editor-explorer" id="file-explorer" aria-labelledby="file-explorer-title">
+                        <div class="explorer-heading" id="file-explorer-title">EXPLORER</div>
+                        <div class="explorer-project-name"><i class="fas fa-folder-open" aria-hidden="true"></i><span id="explorer-repository">PROJECT</span></div>
+                        <p class="source-status" id="files-status" role="status">Memuat file repository...</p>
+                        <div class="file-list" id="file-list" aria-label="File repository"></div>
+                    </aside>
+                    <section class="editor-code-panel" aria-label="Source code">
+                        <div class="editor-tabs">
+                            <span class="editor-tab" id="active-file-tab"><i class="fas fa-code" aria-hidden="true"></i> Pilih file</span>
+                        </div>
+                        <div class="editor-breadcrumb"><span id="source-filename">Pilih file dari Explorer</span></div>
+                        <p class="source-status" id="source-status" role="status" hidden></p>
+                        <div class="source-editor" id="source-editor" hidden>
+                            <div class="source-line-numbers" id="source-line-numbers" aria-hidden="true"></div>
+                            <pre class="source-code" id="source-code"><code id="source-code-content"></code></pre>
+                        </div>
+                        <article class="readme-preview" id="readme-preview" hidden></article>
+                    </section>
+                </div>
+            </section>
+            <section class="project-live-preview" aria-labelledby="project-preview-title">
+                <div class="live-preview-heading">
+                    <div>
+                        <h3 id="project-preview-title"><i class="fas fa-display" aria-hidden="true"></i> Pratinjau proyek</h3>
+                    </div>
+                    <div class="live-preview-actions">
+                        <span class="preview-state" id="preview-state">Memuat...</span>
+                        <a class="preview-open-link" id="preview-open-link" href="#" target="_blank"
+                            rel="noopener noreferrer" hidden>
+                            Buka tab baru <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="project-preview-stage">
+                    <div class="preview-placeholder" id="preview-placeholder">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <span>Memuat pratinjau proyek...</span>
+                    </div>
+                    <iframe id="project-preview" title="Pratinjau proyek terpilih"
+                        sandbox="allow-scripts allow-forms" hidden></iframe>
+                </div>
+            </section>
+            </div>
+    </main>
+
+    <footer class="templates-footer">
+        <a href="/">D-code</a>
+        <a href="/privacy">Kebijakan Privasi</a>
+    </footer>
+    <script type="module" src="/assets/js/app.js"></script>
+    <script type="module" src="/assets/js/template-detail.js"></script>
+</body>
+
+</html>

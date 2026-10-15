@@ -1,0 +1,14 @@
+{
+  "name": "d-code",
+  "version": "1.0.0",
+  "description": "Website for code learn",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
