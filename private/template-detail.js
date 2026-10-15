@@ -24,6 +24,7 @@ let selectedPreviewUrl = "";
 let explorerOpen = true;
 let previewMode = "none";
 let sourcePreviewHtml = "";
+let previewLoadTimer = null;
 const mobileViewport = window.matchMedia("(max-width: 680px)");
 
 function getRawUrl(project, filePath) {
@@ -84,6 +85,19 @@ function parseRepositoryUrl(repositoryUrl) {
     return { owner, repository: repository.replace(/\.git$/i, "") };
 }
 
+function parseProjectEntry(entry) {
+    if (typeof entry === "string") {
+        return { url: entry, previewUrl: "" };
+    }
+    if (entry && typeof entry === "object" && typeof entry.url === "string") {
+        return {
+            url: entry.url,
+            previewUrl: typeof entry.previewUrl === "string" ? entry.previewUrl : ""
+        };
+    }
+    return null;
+}
+
 function getFileLanguage(filePath) {
     const extension = filePath.split(".").pop().toLowerCase();
     const languages = {
@@ -91,10 +105,12 @@ function getFileLanguage(filePath) {
         html: "xml",
         htm: "xml",
         js: "javascript",
+        jsx: "javascript",
         json: "json",
         md: "markdown",
         mjs: "javascript",
         ts: "typescript",
+        tsx: "typescript",
         txt: "plaintext",
         xml: "xml",
         yml: "yaml",
@@ -295,10 +311,32 @@ function setExplorerOpen(isOpen) {
     explorerToggle.setAttribute("aria-expanded", String(explorerOpen));
 }
 
+function clearPreviewTimer() {
+    if (previewLoadTimer) {
+        clearTimeout(previewLoadTimer);
+        previewLoadTimer = null;
+    }
+}
+
+function markPreviewReady() {
+    clearPreviewTimer();
+    previewPlaceholder.hidden = true;
+    previewState.textContent = "Siap";
+}
+
+function markPreviewFailed(message) {
+    clearPreviewTimer();
+    previewPlaceholder.hidden = false;
+    previewPlaceholder.querySelector("span").textContent = message;
+    previewState.textContent = "Gagal";
+}
+
+function isPreviewableUrl(url) {
+    return typeof url === "string" && /^https?:\/\//i.test(url);
+}
+
 function configurePreview(project) {
-    selectedPreviewUrl = typeof project.previewUrl === "string" && project.previewUrl.startsWith("https://")
-        ? project.previewUrl
-        : "";
+    selectedPreviewUrl = isPreviewableUrl(project.previewUrl) ? project.previewUrl : "";
     previewMode = selectedPreviewUrl ? "remote" : "none";
     setPreviewLayout(Boolean(selectedPreviewUrl));
     previewState.textContent = selectedPreviewUrl ? "Memuat..." : "Mencari file HTML...";
@@ -313,7 +351,32 @@ function configurePreview(project) {
     if (selectedPreviewUrl) {
         preview.hidden = false;
         preview.src = selectedPreviewUrl;
+        previewLoadTimer = setTimeout(() => {
+            if (!previewPlaceholder.hidden) {
+                markPreviewReady();
+            }
+        }, 8000);
     }
+}
+
+function activateRemotePreview(url, label = "Pratinjau eksternal") {
+    clearPreviewTimer();
+    selectedPreviewUrl = url;
+    previewMode = "remote";
+    setPreviewLayout(true);
+    previewOpenLink.href = url;
+    previewOpenLink.hidden = false;
+    runButton.disabled = false;
+    previewState.textContent = "Memuat...";
+    previewPlaceholder.querySelector("span").textContent = `Memuat ${label}...`;
+    previewPlaceholder.hidden = false;
+    preview.hidden = false;
+    preview.src = url;
+    previewLoadTimer = setTimeout(() => {
+        if (!previewPlaceholder.hidden) {
+            markPreviewReady();
+        }
+    }, 10000);
 }
 
 function createSourcePreview(project, htmlFile, htmlSource) {
@@ -352,14 +415,7 @@ async function loadSourcePreview(project, files) {
         : htmlFiles.find((filePath) => !filePath.split("/").pop().startsWith("."));
 
     if (!previewFile) {
-        previewMode = "none";
-        setPreviewLayout(false);
-        preview.hidden = true;
-        previewOpenLink.hidden = true;
-        previewState.textContent = "Tidak tersedia";
-        previewPlaceholder.querySelector("span").textContent = "Repository ini tidak memiliki file HTML untuk pratinjau.";
-        previewPlaceholder.hidden = false;
-        return;
+        throw new Error("Repository ini tidak memiliki file HTML untuk pratinjau.");
     }
 
     previewMode = "source";
@@ -369,6 +425,7 @@ async function loadSourcePreview(project, files) {
     previewPlaceholder.hidden = false;
     preview.hidden = true;
     previewOpenLink.hidden = true;
+    runButton.disabled = true;
 
     const response = await fetch(getRawUrl(project, previewFile), {
         headers: { Accept: "text/html, text/plain" }
@@ -377,10 +434,40 @@ async function loadSourcePreview(project, files) {
         throw new Error(`File HTML pratinjau tidak dapat dimuat (HTTP ${response.status}).`);
     }
     const htmlSource = await response.text();
+
+    const needsBuild =
+        /<script[^>]+type=["']module["']/i.test(htmlSource) ||
+        /<script[^>]+src=["'][^"']*\.jsx?["']/i.test(htmlSource) ||
+        /from\s+["'][^"']+\.(jsx?|tsx?)["']/i.test(htmlSource) ||
+        /import\s+React/i.test(htmlSource);
+
+    if (needsBuild) {
+        throw new Error(
+            "Proyek ini memerlukan build (React/Vite/Webpack) sehingga tidak bisa dijalankan langsung dari source."
+        );
+    }
+
     sourcePreviewHtml = createSourcePreview(project, previewFile, htmlSource);
     preview.srcdoc = sourcePreviewHtml;
     preview.hidden = false;
     runButton.disabled = false;
+
+    clearPreviewTimer();
+    previewLoadTimer = setTimeout(() => {
+        if (!previewPlaceholder.hidden) {
+            markPreviewReady();
+        }
+    }, 3000);
+}
+
+function resolveFallbackPreviewUrl(project, repoHomepage) {
+    if (isPreviewableUrl(project.previewUrl)) {
+        return project.previewUrl;
+    }
+    if (isPreviewableUrl(repoHomepage)) {
+        return repoHomepage;
+    }
+    return `https://${project.owner}.github.io/${project.repository}/`;
 }
 
 async function loadProject() {
@@ -397,33 +484,49 @@ async function loadProject() {
     }
 
     const data = await projectsResponse.json();
-    const repositoryUrl = data.projects.find((url) => {
+    let matchedEntry = null;
+    for (const rawEntry of data.projects || []) {
+        const entry = parseProjectEntry(rawEntry);
+        if (!entry) continue;
         try {
-            const parsedUrl = parseRepositoryUrl(url);
-            return parsedUrl.owner === owner && parsedUrl.repository === repository;
+            const parsedUrl = parseRepositoryUrl(entry.url);
+            if (parsedUrl.owner === owner && parsedUrl.repository === repository) {
+                matchedEntry = entry;
+                break;
+            }
         } catch {
-            return false;
+            continue;
         }
-    });
-    if (!repositoryUrl) {
+    }
+    if (!matchedEntry) {
         throw new Error("Proyek ini tidak ada di katalog.");
     }
-    const apiResponse = await fetch(
-        `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
-        { headers: { Accept: "application/vnd.github+json" } }
-    );
-    if (!apiResponse.ok) {
-        throw new Error(`Detail repository GitHub tidak dapat dimuat (HTTP ${apiResponse.status}).`);
+
+    let branch = "main";
+    let repoHomepage = "";
+    let files = [];
+
+    try {
+        const apiResponse = await fetch(
+            `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
+            { headers: { Accept: "application/vnd.github+json" } }
+        );
+        if (apiResponse.ok) {
+            const repo = await apiResponse.json();
+            branch = repo.default_branch || "main";
+            repoHomepage = typeof repo.homepage === "string" ? repo.homepage : "";
+        }
+    } catch {
+        // abaikan
     }
-    const repo = await apiResponse.json();
+
     const project = {
-        owner: repo.owner.login,
-        repository: repo.name,
-        branch: repo.default_branch,
-        previewUrl: typeof repo.homepage === "string" && repo.homepage.startsWith("https://")
-            ? repo.homepage
-            : ""
+        owner,
+        repository,
+        branch,
+        previewUrl: matchedEntry.previewUrl || repoHomepage || ""
     };
+
     if (mobileViewport.matches) {
         setExplorerOpen(false);
     }
@@ -434,44 +537,77 @@ async function loadProject() {
     downloadRepositoryLink.href = `https://codeload.github.com/${encodeURIComponent(project.owner)}/${encodeURIComponent(project.repository)}/zip/refs/heads/${encodedBranch}`;
     downloadRepositoryLink.download = `${project.repository}.zip`;
     downloadRepositoryLink.hidden = false;
-    const treeUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/git/trees/${encodeURIComponent(project.branch)}?recursive=1`;
-    const treeResponse = await fetch(treeUrl, {
-        headers: { Accept: "application/vnd.github+json" }
-    });
-    if (!treeResponse.ok) {
-        throw new Error(`Daftar file GitHub tidak dapat dimuat (HTTP ${treeResponse.status}).`);
+
+    try {
+        const treeUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/git/trees/${encodeURIComponent(project.branch)}?recursive=1`;
+        const treeResponse = await fetch(treeUrl, {
+            headers: { Accept: "application/vnd.github+json" }
+        });
+        if (treeResponse.ok) {
+            const tree = await treeResponse.json();
+            if (!tree.truncated) {
+                files = tree.tree
+                    .filter((item) => item.type === "blob" && !item.path.startsWith(".git/"))
+                    .map((item) => item.path)
+                    .sort((a, b) => a.localeCompare(b));
+            }
+        }
+    } catch {
+        // lanjut
     }
-    const tree = await treeResponse.json();
-    if (tree.truncated) {
-        throw new Error("Repository terlalu besar untuk menampilkan seluruh daftar file.");
-    }
-    const files = tree.tree
-        .filter((item) => item.type === "blob" && !item.path.startsWith(".git/"))
-        .map((item) => item.path)
-        .sort((first, second) => first.localeCompare(second));
+
     if (files.length === 0) {
-        throw new Error("Repository tidak memiliki file yang dapat ditampilkan.");
+        try {
+            const jsdelivrRes = await fetch(
+                `https://data.jsdelivr.com/v1/packages/gh/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}@${encodeURIComponent(project.branch)}?structure=flat`
+            );
+            if (jsdelivrRes.ok) {
+                const jsdelivrData = await jsdelivrRes.json();
+                if (jsdelivrData && Array.isArray(jsdelivrData.files)) {
+                    files = jsdelivrData.files
+                        .filter((item) => item.type === "file" && !item.name.startsWith(".git/"))
+                        .map((item) => item.name)
+                        .sort((a, b) => a.localeCompare(b));
+                }
+            }
+        } catch {
+            // gagal total
+        }
     }
+
+    if (files.length === 0) {
+        throw new Error("Tidak dapat memuat daftar file dari GitHub maupun jsDelivr.");
+    }
+
     configurePreview(project);
 
     folderId = 0;
     fileList.replaceChildren(...renderFileTree(createFileTree(files), project));
     filesStatus.hidden = true;
+
     if (!project.previewUrl) {
         try {
             await loadSourcePreview(project, files);
         } catch (error) {
-            previewMode = "none";
-            setPreviewLayout(false);
-            preview.hidden = true;
-            previewState.textContent = "Tidak tersedia";
-            previewPlaceholder.querySelector("span").textContent = `Pratinjau source tidak dapat dibuat: ${error.message}`;
-            previewPlaceholder.hidden = false;
-            filesStatus.textContent = `Pratinjau tidak tersedia: ${error.message}`;
-            filesStatus.dataset.state = "warning";
-            filesStatus.hidden = false;
+            const fallbackUrl = resolveFallbackPreviewUrl(project, repoHomepage);
+            if (fallbackUrl) {
+                project.previewUrl = fallbackUrl;
+                activateRemotePreview(
+                    fallbackUrl,
+                    "pratinjau eksternal (source tidak bisa dijalankan langsung)"
+                );
+            } else {
+                previewMode = "none";
+                setPreviewLayout(false);
+                preview.hidden = true;
+                previewState.textContent = "Tidak tersedia";
+                previewPlaceholder.querySelector("span").textContent =
+                    `Pratinjau source tidak dapat dibuat: ${error.message}`;
+                previewPlaceholder.hidden = false;
+            }
         }
     }
+
     const initialFile = files.includes("index.html")
         ? "index.html"
         : files.find((filePath) => filePath.toLowerCase().endsWith(".html")) || files[0];
@@ -485,18 +621,32 @@ async function loadProject() {
 loadProject().catch((error) => {
     filesStatus.textContent = error.message;
     filesStatus.dataset.state = "error";
+    filesStatus.hidden = false;
     previewPlaceholder.querySelector("span").textContent = "Tidak dapat memuat pratinjau proyek.";
 });
 
 function reloadPreview() {
+    clearPreviewTimer();
     previewState.textContent = "Memuat ulang...";
     previewPlaceholder.querySelector("span").textContent = "Memuat ulang pratinjau...";
     previewPlaceholder.hidden = false;
     preview.hidden = false;
     if (previewMode === "remote") {
         preview.src = selectedPreviewUrl;
+        previewLoadTimer = setTimeout(() => {
+            if (!previewPlaceholder.hidden) {
+                markPreviewReady();
+            }
+        }, 10000);
     } else if (previewMode === "source") {
         preview.srcdoc = sourcePreviewHtml;
+        previewLoadTimer = setTimeout(() => {
+            if (!previewPlaceholder.hidden) {
+                markPreviewReady();
+            }
+        }, 3000);
+    } else {
+        markPreviewFailed("Tidak ada pratinjau yang tersedia.");
     }
 }
 
@@ -515,8 +665,15 @@ mobileViewport.addEventListener("change", (event) => {
 });
 
 preview.addEventListener("load", () => {
-    previewPlaceholder.hidden = true;
-    previewState.textContent = "Siap";
+    if (previewMode !== "none") {
+        markPreviewReady();
+    }
+});
+
+preview.addEventListener("error", () => {
+    if (previewMode !== "none") {
+        markPreviewFailed("Gagal memuat pratinjau (resource error).");
+    }
 });
 
 sourceCode.addEventListener("scroll", () => {

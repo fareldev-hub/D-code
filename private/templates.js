@@ -26,6 +26,58 @@ function parseRepositoryUrl(repositoryUrl) {
     return { owner, repository: repository.replace(/\.git$/i, "") };
 }
 
+function prettifyName(repository) {
+    return repository
+        .replace(/[-_]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+function normalizeProject(raw) {
+    if (typeof raw === "string") {
+        const { owner, repository } = parseRepositoryUrl(raw);
+        return {
+            owner,
+            repository,
+            name: prettifyName(repository),
+            author: owner,
+            description: "",
+            language: "code",
+            url: raw
+        };
+    }
+
+    if (!raw || typeof raw !== "object") {
+        throw new Error(`Data proyek tidak valid: ${JSON.stringify(raw)}`);
+    }
+
+    let owner = raw.owner;
+    let repository = raw.repository;
+
+    if ((!owner || !repository) && raw.url) {
+        const parsed = parseRepositoryUrl(raw.url);
+        owner = owner || parsed.owner;
+        repository = repository || parsed.repository;
+    }
+
+    if (!owner || !repository) {
+        throw new Error(`Data proyek tidak lengkap: ${JSON.stringify(raw)}`);
+    }
+
+    return {
+        owner,
+        repository,
+        name: raw.name || prettifyName(repository),
+        author: raw.author || owner,
+        description: raw.description || "",
+        language: raw.language || "code",
+        url: raw.url || `https://github.com/${owner}/${repository}`
+    };
+}
+
 function createProjectCard(project) {
     const link = document.createElement("a");
     link.className = "project-card";
@@ -76,28 +128,6 @@ function createProjectCard(project) {
     return link;
 }
 
-async function fetchProject(repositoryUrl) {
-    const { owner, repository } = parseRepositoryUrl(repositoryUrl);
-    const response = await fetch(
-        `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
-        { headers: { Accept: "application/vnd.github+json" } }
-    );
-    if (!response.ok) {
-        throw new Error(`GitHub tidak dapat memuat ${owner}/${repository} (HTTP ${response.status}).`);
-    }
-
-    const repo = await response.json();
-    return {
-        owner: repo.owner.login,
-        repository: repo.name,
-        name: repo.name,
-        author: repo.owner.login,
-        description: repo.description || "",
-        language: repo.language || "code",
-        url: repo.html_url
-    };
-}
-
 async function loadProjects() {
     try {
         const response = await fetch("/projects.json", {
@@ -108,17 +138,23 @@ async function loadProjects() {
         }
 
         const data = await response.json();
-        if (!Array.isArray(data.projects) || data.projects.length === 0) {
+        const rawList = Array.isArray(data) ? data : data.projects;
+        if (!Array.isArray(rawList) || rawList.length === 0) {
             throw new Error("Belum ada proyek yang tersedia.");
         }
 
-        const results = await Promise.allSettled(data.projects.map(fetchProject));
-        projects = results
-            .filter((result) => result.status === "fulfilled")
-            .map((result) => result.value);
-        const errors = results.filter((result) => result.status === "rejected");
+        projects = [];
+        const errors = [];
+        rawList.forEach((raw) => {
+            try {
+                projects.push(normalizeProject(raw));
+            } catch (error) {
+                errors.push(error);
+            }
+        });
+
         if (projects.length === 0) {
-            throw new Error(errors.map((result) => result.reason.message).join(" "));
+            throw new Error(errors.map((error) => error.message).join(" "));
         }
 
         projectCount.textContent = String(projects.length);
@@ -126,7 +162,7 @@ async function loadProjects() {
         listStatus.hidden = true;
         filterProjects();
         if (errors.length > 0) {
-            listStatus.textContent = `${errors.length} repository tidak dapat dimuat dari GitHub.`;
+            listStatus.textContent = `${errors.length} proyek tidak dapat dimuat.`;
             listStatus.dataset.state = "warning";
             listStatus.hidden = false;
         }
