@@ -340,9 +340,14 @@
 
 .project-card-description {
     min-height: 42px;
+    display: -webkit-box;
+    overflow: hidden;
     color: var(--muted);
     font-size: 12px;
     line-height: 1.7;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 
 .project-card-footer {

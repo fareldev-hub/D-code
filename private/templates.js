@@ -5,6 +5,41 @@ const searchInput = document.querySelector("#project-search");
 const emptyState = document.querySelector("#project-empty-state");
 
 let projects = [];
+let githubProjects = [];
+let githubSearchRequest;
+let searchTimer;
+const searchCache = new Map();
+const searchStorageKey = "d-code-template-search";
+
+function restoreSavedSearch() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(searchStorageKey) || "null");
+        if (!saved || typeof saved.query !== "string") return;
+
+        const query = saved.query.trim().toLocaleLowerCase();
+        searchInput.value = saved.query;
+        if (!query || !Array.isArray(saved.results) || saved.results.length === 0) return;
+
+        const results = saved.results.map(normalizeProject).filter(isHtmlWebsiteProject);
+        if (results.length === 0) return;
+        searchCache.set(query, results);
+        githubProjects = results;
+    } catch {
+        return;
+    }
+}
+
+function saveSearch(query, results = []) {
+    try {
+        if (!query) {
+            localStorage.removeItem(searchStorageKey);
+            return;
+        }
+        localStorage.setItem(searchStorageKey, JSON.stringify({ query, results }));
+    } catch {
+        // Pencarian tetap berfungsi bila penyimpanan browser tidak tersedia.
+    }
+}
 
 function parseRepositoryUrl(repositoryUrl) {
     let url;
@@ -76,6 +111,10 @@ function normalizeProject(raw) {
         language: raw.language || "code",
         url: raw.url || `https://github.com/${owner}/${repository}`
     };
+}
+
+function isHtmlWebsiteProject(project) {
+    return (project.language || "").toLocaleLowerCase() === "html";
 }
 
 function createProjectCard(project) {
@@ -174,18 +213,103 @@ async function loadProjects() {
 
 function filterProjects() {
     const query = searchInput.value.trim().toLocaleLowerCase();
-    let visibleCount = 0;
+    clearTimeout(searchTimer);
+    githubSearchRequest?.abort();
+    githubProjects = [];
+    listStatus.hidden = true;
 
-    projectList.querySelectorAll(".project-card").forEach((card) => {
-        const matches = card.dataset.search.includes(query);
-        card.hidden = !matches;
-        if (matches) visibleCount += 1;
-    });
+    if (!query) {
+        saveSearch("");
+        renderProjectMatches("");
+        listStatus.hidden = true;
+        return;
+    }
 
-    projectCount.textContent = String(visibleCount);
-    emptyState.hidden = visibleCount > 0;
+    renderProjectMatches(query);
+    const cachedResults = searchCache.get(query);
+    if (cachedResults?.length) {
+        githubProjects = cachedResults;
+        saveSearch(query, cachedResults);
+        renderProjectMatches(query);
+        listStatus.hidden = true;
+        return;
+    }
+
+    saveSearch(query);
+    searchTimer = setTimeout(() => searchGitHub(query), 450);
 }
 
+function renderProjectMatches(query) {
+    const localMatches = projects.filter((project) => [
+        project.owner,
+        project.name,
+        project.author,
+        project.description,
+        project.language
+    ].join(" ").toLocaleLowerCase().includes(query));
+    const localKeys = new Set(localMatches.map((project) => `${project.owner}/${project.repository}`.toLowerCase()));
+    const visibleProjects = [
+        ...localMatches,
+        ...githubProjects.filter((project) =>
+            !localKeys.has(`${project.owner}/${project.repository}`.toLowerCase())
+        )
+    ];
+
+    projectCount.textContent = String(visibleProjects.length);
+    projectList.replaceChildren(...visibleProjects.map(createProjectCard));
+    emptyState.hidden = visibleProjects.length > 0;
+}
+
+async function searchGitHub(query) {
+    githubSearchRequest?.abort();
+    githubSearchRequest = new AbortController();
+    const { signal } = githubSearchRequest;
+    listStatus.textContent = "Mencari Repository";
+    listStatus.dataset.state = "";
+    listStatus.hidden = false;
+
+    try {
+        const params = new URLSearchParams({
+            q: `${query} in:name,description,readme language:HTML`,
+            per_page: "12"
+        });
+        const response = await fetch(`https://api.github.com/search/repositories?${params}`, {
+            signal,
+            headers: { Accept: "application/vnd.github+json" }
+        });
+        if (!response.ok) {
+            throw new Error(`GitHub mengembalikan status ${response.status}.`);
+        }
+
+        const data = await response.json();
+        const results = (Array.isArray(data.items) ? data.items : [])
+            .filter((repo) => repo.owner && repo.owner.login && repo.language === "HTML")
+            .map((repo) => normalizeProject({
+                owner: repo.owner.login,
+                repository: repo.name,
+                name: repo.name,
+                author: repo.owner.login,
+                description: repo.description || "",
+                language: repo.language || "code",
+                url: repo.html_url
+            }));
+        searchCache.set(query, results);
+        if (searchInput.value.trim().toLocaleLowerCase() !== query) return;
+        githubProjects = results;
+        saveSearch(query, results);
+        renderProjectMatches(query);
+        listStatus.hidden = true;
+    } catch (error) {
+        if (error.name === "AbortError") return;
+        if (searchInput.value.trim().toLocaleLowerCase() === query) {
+            listStatus.textContent = `Pencarian GitHub gagal: ${error.message}`;
+            listStatus.dataset.state = "warning";
+            listStatus.hidden = false;
+        }
+    }
+}
+
+restoreSavedSearch();
 searchInput.addEventListener("input", filterProjects);
 document.addEventListener("keydown", (event) => {
     if (event.key === "/" && document.activeElement !== searchInput) {
